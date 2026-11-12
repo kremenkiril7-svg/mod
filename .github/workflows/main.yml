@@ -1,7 +1,11 @@
 name: Build mod
 on:
   push:
+    paths-ignore:
+      - 'dist/**'
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,4 +25,13 @@ jobs:
         with:
           name: visuals-mod
           path: visuals/build/libs/*.jar
-          
+      - name: Save jar into repo (dist/)
+        run: |
+          mkdir -p dist
+          J=$(ls visuals/build/libs/*.jar | grep -v -e sources -e dev | head -1)
+          cp "$J" dist/visuals-mod.jar
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add dist/visuals-mod.jar
+          git commit -m "Build jar" || exit 0
+          git push
